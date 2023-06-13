@@ -1,7 +1,7 @@
 import type { Options } from './types'
 import unplugin from '.'
 
-export default function (options: Options = {}, nuxt: any) {
+export default function (options: Options, nuxt: any) {
   // install webpack plugin
   nuxt.hook('webpack:config', async (config: any) => {
     config.plugins = config.plugins || []

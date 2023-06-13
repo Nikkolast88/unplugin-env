@@ -1,1 +1,3 @@
-document.getElementById('app')!.innerHTML = '__UNPLUGIN__'
+import 'virtual:env'
+
+document.getElementById('app')!.innerHTML = `__UNPLUGIN__${1}`

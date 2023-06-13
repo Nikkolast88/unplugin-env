@@ -1,17 +1,17 @@
 {
-  "name": "unplugin-starter",
+  "name": "unplugin-env",
   "type": "module",
   "version": "0.1.0",
   "packageManager": "pnpm@7.1.1",
   "description": "Register global imports on demand for Vite and Webpack",
   "license": "MIT",
-  "homepage": "https://github.com/antfu/unplugin-starter#readme",
+  "homepage": "https://github.com/nikkolast88/unplugin-env#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antfu/unplugin-starter.git"
+    "url": "git+https://github.com/nikkolast88/unplugin-env.git"
   },
   "bugs": {
-    "url": "https://github.com/antfu/unplugin-starter/issues"
+    "url": "https://github.com/nikkolast88/unplugin-env/issues"
   },
   "keywords": [
     "unplugin",
@@ -84,23 +84,29 @@
     "test": "vitest"
   },
   "dependencies": {
-    "unplugin": "^1.0.1"
+    "@antfu/utils": "^0.7.4",
+    "compressing": "^1.9.0",
+    "local-pkg": "^0.4.3",
+    "unplugin": "^1.3.1"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.33.1",
-    "@types/node": "^18.11.13",
-    "bumpp": "^8.2.1",
+    "@antfu/eslint-config": "^0.39.5",
+    "@types/node": "^20.2.5",
+    "@types/prettier": "^2.7.3",
+    "bumpp": "^9.1.1",
     "chalk": "^5.2.0",
-    "eslint": "^8.29.0",
+    "eslint": "^8.42.0",
     "esno": "^0.16.3",
     "fast-glob": "^3.2.12",
-    "nodemon": "^2.0.20",
-    "rimraf": "^3.0.2",
-    "rollup": "^3.7.3",
-    "tsup": "^6.5.0",
-    "typescript": "^4.9.4",
-    "vite": "^4.0.0",
-    "vitest": "^0.25.7",
-    "webpack": "^5.75.0"
+    "magicast": "^0.2.9",
+    "nodemon": "^2.0.22",
+    "prettier": "^2.8.8",
+    "rimraf": "^5.0.1",
+    "rollup": "^3.23.1",
+    "tsup": "^6.7.0",
+    "typescript": "^4.9.5",
+    "vite": "^4.3.9",
+    "vitest": "^0.31.4",
+    "webpack": "^5.85.1"
   }
 }
