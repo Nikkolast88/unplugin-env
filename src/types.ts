@@ -46,4 +46,5 @@ export interface GenerateScript {
     source: string
     fileName: string
   }
+  watchFolder: string
 }
