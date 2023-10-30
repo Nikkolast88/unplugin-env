@@ -36,13 +36,13 @@ export async function generateScript(options: ResolvedOptions, mode: 'serve' | '
   const formatCode = await format(code, { parser: 'babel' })
   return {
     code,
-    script: `  <script src="${fileName}"></script>\n</head>`,
+    script: `  <script type="text/javascript" src="${fileName}"></script>\n</head>`,
     emit: {
       type: 'asset',
       fileName: name,
       source: formatCode,
     },
-    watchFolder: folder,
+    watchFolder: path.resolve(folder),
   }
 }
 
@@ -57,7 +57,7 @@ async function generateVersion(options: ResolvedOptions, mode: 'serve' | 'build'
   return `console.info("Version: ${packageJson.version} -  ${mode === 'serve' ? 'runtime' : 'built'} on ${options.date}")`
 }
 
-async function findFolder(directoryPath: string, dir: string) {
+async function findFolder(directoryPath: string, dir: string): Promise<string> {
   const ignore = ['dist', 'node_modules', 'playground', 'example', 'test', 'jest', 'tests', 'locales', 'public', '.git', '.github', '.vscode']
   let files = await fs.readdir(directoryPath)
   files = files.filter((item: string) => !ignore.includes(item))
@@ -76,5 +76,5 @@ async function findFolder(directoryPath: string, dir: string) {
       }
     }
   }
-  return null
+  return ''
 }

@@ -13,20 +13,19 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     name: 'plugin-env-serve',
     apply: 'serve',
     enforce: 'post',
-    resolveId(id) {
+    async resolveId(id) {
       if (id.startsWith(virtualEnvId))
         return resolvedVirtualEnvId
-
-      return null
     },
     async load(id) {
-      const config = await resolved
-      const { code, watchFolder } = await generateScript(config, 'serve')
-      this.addWatchFile(watchFolder)
-      if (id.startsWith(resolvedVirtualEnvId))
-        return code
+      if (id.startsWith(resolvedVirtualEnvId)) {
+        const config = await resolved
+        const { code } = await generateScript(config, 'serve')
 
-      return null
+        // this.addWatchFile(watchFolder)
+        // console.log(this.getWatchFiles())
+        return code
+      }
     },
   }, {
     name: 'unplugin-env-build',
@@ -35,8 +34,6 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     resolveId(id) {
       if (id.startsWith(virtualEnvId))
         return resolvedVirtualEnvId
-
-      return null
     },
     async load(id) {
       const config = await resolved
