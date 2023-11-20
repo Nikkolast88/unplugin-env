@@ -1,10 +1,11 @@
 import path, { resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
+import process from 'node:process'
 import fg from 'fast-glob'
 import { loadFile } from 'magicast'
 import { deepMerge } from '@antfu/utils'
 
-import { format } from 'prettier'
+// import { format } from 'prettier'
 import type { GenerateScript, ResolvedOptions } from '../types'
 
 // external link or runtime
@@ -33,7 +34,7 @@ export async function generateScript(options: ResolvedOptions, mode: 'serve' | '
   const returnedTarget = deepMerge({}, source, target)
   const versionInfo = await generateVersion(options, mode)
   code = `window.${globalName}=${JSON.stringify(returnedTarget)};${versionInfo}`
-  const formatCode = await format(code, { parser: 'babel' })
+  const formatCode = code
   return {
     code,
     script: `  <script type="text/javascript" src="${fileName}"></script>\n</head>`,
