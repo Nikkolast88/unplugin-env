@@ -1,8 +1,10 @@
 import { promises as fs } from 'node:fs'
+import process from 'node:process'
 import { type UnpluginFactory, createUnplugin } from 'unplugin'
 import type { Options } from './types'
 import { generateScript } from './core/generate'
 import { resolveOptions } from './core/options'
+import { createCompress } from './core/compress'
 
 const virtualEnvId = 'virtual:env'
 const resolvedVirtualEnvId = `\0${virtualEnvId}`
@@ -51,6 +53,11 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
       }
 
       return null
+    },
+    buildEnd: () => {
+      process.on('beforeExit', async () => {
+        await createCompress()
+      })
     },
   }]
 }

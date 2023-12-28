@@ -4,15 +4,15 @@ import chalk from 'chalk'
 const log = console.log
 
 export class Log {
-  static log(msg: string) {
-    log(chalk.bold(msg))
+  static log(key: string, msg: unknown) {
+    log(chalk.bold(`${key}: ${msg}`))
   }
 
-  static error(msg: string) {
-    log(chalk.bold.red(msg))
+  static error(key: string, msg: unknown) {
+    log(chalk.bold.red(`${key}: ${msg}`))
   }
 
-  static success(msg: string) {
-    log(chalk.bold.green(msg))
+  static success(key: string, msg: unknown) {
+    log(chalk.bold.green(`${key}: ${msg}`))
   }
 }
