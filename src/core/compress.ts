@@ -8,7 +8,7 @@ import { Log } from './log'
  * @param options 压缩选项，具体选项取决于 compressing.zip.compressDir 支持的参数。
  * @returns 返回一个Promise，该Promise会在压缩完成后被解析。
  */
-export async function createCompress(options: Options) {
+export async function createCompress(options: any) {
   Log.log('Compressing the directory', options)
   try {
     await compressing.zip.compressDir('./dist', './dist.zip')

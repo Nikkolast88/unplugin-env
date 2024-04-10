@@ -53,7 +53,7 @@ export async function generateScript(options: ResolvedOptions, mode: 'serve' | '
       fileName: name,
       source: formatCode,
     },
-    watchFolder: folder,
+    watchFiles: files,
   }
 }
 

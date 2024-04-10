@@ -22,9 +22,11 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     async load(id) {
       if (id.startsWith(resolvedVirtualEnvId)) {
         const config = await resolved
-        const { code } = await generateScript(config, 'serve')
+        const { code, watchFiles } = await generateScript(config, 'serve')
 
-        // this.addWatchFile(watchFolder)
+        watchFiles.forEach((file) => {
+          this.addWatchFile(file)
+        })
         // console.log(this.getWatchFiles())
         return code
       }
@@ -56,7 +58,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     },
     buildEnd: () => {
       process.on('beforeExit', async () => {
-        await createCompress()
+        await createCompress({})
       })
     },
   }]

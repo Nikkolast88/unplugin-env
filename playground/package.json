@@ -7,7 +7,7 @@
     "build": "vite build --mode staging"
   },
   "devDependencies": {
-    "vite": "^5.0.10",
-    "vite-plugin-inspect": "^0.8.1"
+    "vite": "^5.2.8",
+    "vite-plugin-inspect": "^0.8.3"
   }
 }
