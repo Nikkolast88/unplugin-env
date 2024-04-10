@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs'
 import process from 'node:process'
 import { type UnpluginFactory, createUnplugin } from 'unplugin'
-import type { Options } from './types'
+import type { DeepRequired, Options, ResolvedOptions } from './types'
 import { generateScript } from './core/generate'
 import { resolveOptions } from './core/options'
 import { createCompress } from './core/compress'
@@ -21,13 +21,11 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     },
     async load(id) {
       if (id.startsWith(resolvedVirtualEnvId)) {
-        const config = await resolved
-        const { code, watchFiles } = await generateScript(config, 'serve')
+        const { code, watchFiles } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'serve')
 
         watchFiles.forEach((file) => {
           this.addWatchFile(file)
         })
-        // console.log(this.getWatchFiles())
         return code
       }
     },
@@ -40,8 +38,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
         return resolvedVirtualEnvId
     },
     async load(id) {
-      const config = await resolved
-      const { emit, script } = await generateScript(config, 'build')
+      const { emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'build')
       if (id.startsWith(resolvedVirtualEnvId)) {
         this.emitFile(emit)
         return ''
@@ -58,7 +55,8 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     },
     buildEnd: () => {
       process.on('beforeExit', async () => {
-        await createCompress({})
+        const { compress } = resolved
+        await createCompress(compress as DeepRequired<ResolvedOptions['compress']>)
       })
     },
   }]

@@ -5,7 +5,7 @@ import fg from 'fast-glob'
 import { loadFile } from 'magicast'
 import { deepMerge } from '@antfu/utils'
 
-import type { GenerateScript, ResolvedOptions } from '../types'
+import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
 
 /**
  * 生成脚本
@@ -13,9 +13,9 @@ import type { GenerateScript, ResolvedOptions } from '../types'
  * @param mode - 模式，可以是'serve'或'build'
  * @returns 返回一个Promise，其值为GenerateScript对象
  */
-export async function generateScript(options: ResolvedOptions, mode: 'serve' | 'build'): Promise<GenerateScript> {
+export async function generateScript(options: DeepRequired<ResolvedOptions>, mode: 'serve' | 'build'): Promise<GenerateScript> {
   const { dir, fileName, globalName, serve, build } = options.env
-  const folder = await findFolder(process.cwd(), dir || '')
+  const folder = await findFolder(process.cwd(), dir)
   const files = await fg('*.+(js|ts)', {
     absolute: true,
     cwd: folder,
@@ -25,7 +25,7 @@ export async function generateScript(options: ResolvedOptions, mode: 'serve' | '
   let target = {}
   const source = []
   let code = ''
-  const name = fileName || ''
+  const name = fileName
 
   for (const file of files) {
     try {

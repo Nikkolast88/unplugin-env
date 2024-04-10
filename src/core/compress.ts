@@ -1,18 +1,32 @@
-// 假设 Options 类型已经在此文件中定义
+import fs from 'node:fs'
 import process from 'node:process'
-import * as compressing from 'compressing'
+import archiver from 'archiver'
+import type { DeepRequired, ResolvedOptions } from '../types' // 假设你有一个名为 'types' 的文件，其中包含了 ResolvedOptions 类型的定义
 import { Log } from './log'
 
-/**
- * 生成一个ZIP格式的压缩文件。
- * @param options 压缩选项，具体选项取决于 compressing.zip.compressDir 支持的参数。
- * @returns 返回一个Promise，该Promise会在压缩完成后被解析。
- */
-export async function createCompress(options: any) {
-  Log.log('Compressing the directory', options)
+export async function createCompress(options: DeepRequired<ResolvedOptions['compress']>) {
+  const { outDir, ignoreBase } = options
+  const zipFilePath = `${outDir}.zip` // 压缩文件的路径为 outDir.zip
+
+  Log.log('Compressing the directory', outDir)
+
   try {
-    await compressing.zip.compressDir('./dist', './dist.zip')
-    Log.success('Successfully compressed the directory', options)
+    // 创建一个输出流，将压缩后的数据写入到压缩文件中
+    const output = fs.createWriteStream(zipFilePath)
+    const archive = archiver('zip', {
+      zlib: { level: 9 }, // 设置压缩级别为最高
+    })
+
+    // 将输出流管道到 archiver 实例中
+    archive.pipe(output)
+
+    // 创建一个名为 dist 的顶层目录
+    archive.directory(outDir, ignoreBase ? outDir : false)
+
+    // 完成压缩并关闭输出流
+    await archive.finalize()
+
+    Log.success('Successfully compressed the directory', outDir)
     process.exit(0)
   }
   catch (error) {

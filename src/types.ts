@@ -27,14 +27,19 @@ export interface Options {
      */
     build?: RegExp
   }
-  // compress?: {
-  //   outDir?: string
-  //   adapter?: 'zip' | 'gzip' | 'tar'
-  //   formatter: string
-  // } | boolean
+  compress?: {
+    outDir?: string
+    ignoreBase?: boolean
+  }
 }
 
-export interface ResolvedOptions extends Required<Options> {
+// 定义一个递归函数，将对象中的所有属性转换为必填属性
+export type DeepRequired<T> = {
+  [P in keyof T]-?: T[P] extends object ? DeepRequired<T[P]> : T[P]
+}
+
+// 使用交叉类型将Options转换为必填类型
+export type ResolvedOptions = DeepRequired<Options> & {
   date: string
 }
 

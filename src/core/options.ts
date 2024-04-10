@@ -9,7 +9,7 @@ import type { Options, ResolvedOptions } from '../types'
 // env
 // :
 // {c: 3}
-export async function resolveOptions(options: Options): Promise<ResolvedOptions> {
+export function resolveOptions(options: Options) {
   const defaults = {
     env: {
       dir: 'config',
@@ -17,6 +17,10 @@ export async function resolveOptions(options: Options): Promise<ResolvedOptions>
       globalName: 'manifest',
       serve: /dev|development/i,
       build: /prod|production/i,
+    },
+    compress: {
+      outDir: 'dist',
+      ignoreBase: true,
     },
   }
 
