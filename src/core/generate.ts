@@ -4,7 +4,7 @@ import process from 'node:process'
 import fg from 'fast-glob'
 import { loadFile } from 'magicast'
 import { deepMerge } from '@antfu/utils'
-
+import js_beautify from 'js-beautify'
 import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
 
 /**
@@ -44,7 +44,7 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
   const returnedTarget = deepMerge({}, source, target)
   const versionInfo = await generateVersion(options, mode)
   code = `window.${globalName}=${JSON.stringify(returnedTarget)};${versionInfo}`
-  const formatCode = code
+  const formatCode = js_beautify.js_beautify(code)
   return {
     code,
     script: `  <script type="text/javascript" src="${fileName}"></script>\n</head>`,
