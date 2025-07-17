@@ -57,6 +57,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
       process.on('beforeExit', async () => {
         const { compress } = resolved
         await createCompress(compress as DeepRequired<ResolvedOptions['compress']>)
+        process.exit(0)
       })
     },
   }]
