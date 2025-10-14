@@ -47,7 +47,7 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
   const formatCode = js_beautify.js_beautify(code)
   return {
     code,
-    script: `  <script type="text/javascript" src="${fileName}"></script>\n</head>`,
+    script: `  <script type="text/javascript" src="/${fileName}"></script>\n</head>`,
     emit: {
       type: 'asset',
       fileName: name,
