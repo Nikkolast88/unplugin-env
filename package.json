@@ -2,6 +2,7 @@
   "name": "unplugin-env",
   "type": "module",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.20.0+sha512.cf9998222162dd85864d0a8102e7892e7ba4ceadebbf5a31f9c2fce48dfce317a9c53b9f6464d1ef9042cba2e02ae02a9f7c143a2b438cd93c91840f0192b9dd",
   "description": "Register global imports on demand for Vite and Webpack",
   "license": "MIT",
   "homepage": "https://github.com/nikkolast88/unplugin-env#readme",
@@ -109,30 +110,29 @@
     }
   },
   "dependencies": {
-    "@antfu/utils": "^0.7.8",
+    "@antfu/utils": "^9.3.0",
     "archiver": "^7.0.1",
-    "local-pkg": "^0.5.0",
+    "local-pkg": "^1.1.2",
     "recast": "^0.23.11",
-    "unplugin": "^1.10.1"
+    "unplugin": "^2.3.10"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^2.17.0",
-    "@nuxt/kit": "^3.11.2",
-    "@nuxt/schema": "^3.11.2",
-    "@types/archiver": "^6.0.2",
-    "@types/node": "^20.12.11",
-    "bumpp": "^9.4.1",
-    "chalk": "^5.3.0",
-    "eslint": "^8.57.0",
-    "esno": "^4.7.0",
-    "fast-glob": "^3.3.2",
-    "nodemon": "^3.1.0",
-    "rimraf": "^5.0.5",
-    "rollup": "^4.17.2",
-    "tsup": "^8.0.2",
-    "typescript": "^4.9.5",
-    "vite": "^5.2.11",
-    "vitest": "^1.6.0",
-    "webpack": "^5.91.0"
+    "@antfu/eslint-config": "^6.2.0",
+    "@nuxt/kit": "^4.2.0",
+    "@nuxt/schema": "^4.2.0",
+    "@types/archiver": "^7.0.0",
+    "@types/node": "^24.10.0",
+    "bumpp": "^10.3.1",
+    "chalk": "^5.6.2",
+    "eslint": "^9.39.0",
+    "esno": "^4.8.0",
+    "fast-glob": "^3.3.3",
+    "nodemon": "^3.1.10",
+    "rollup": "^4.52.5",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vitest": "^4.0.6",
+    "webpack": "^5.102.1"
   }
 }

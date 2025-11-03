@@ -20,4 +20,4 @@ window.manifest={
       ],
     }
 };
-console.info("Version: %c0.0.1%c -  built on %c2025年11月3日星期一 17:31:11%c", "color: green;", '', "color: blue;", '')
+console.info("Version: %c0.0.1%c -  built on %c2025年11月3日星期一 18:10:21%c", "color: green;", '', "color: blue;", '')

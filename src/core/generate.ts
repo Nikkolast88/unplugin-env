@@ -1,7 +1,8 @@
-import path, { resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
+import path from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
+import { getPackageInfo } from 'local-pkg'
 import recast from 'recast'
 import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
 
@@ -88,14 +89,9 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
  * @returns 返回版本信息的字符串
  */
 async function generateVersion(options: ResolvedOptions, mode: 'serve' | 'build') {
-  const packageFile = await fg('package.json', {
-    absolute: true,
-    cwd: resolve(process.cwd()),
-  })
-  const packageString = await fs.readFile(packageFile[0], 'utf8')
-  const packageJson = JSON.parse(packageString)
-  // 加粗
-  return `console.info("Version: %c${packageJson.version}%c -  ${mode === 'serve' ? 'runtime' : 'built'} on %c${options.date}%c", "color: green;", '', "color: blue;", '')`
+  const pkg = await getPackageInfo(process.cwd())
+  // 加入版本信息
+  return `console.info("Version: %c${pkg?.version}%c -  ${mode === 'serve' ? 'runtime' : 'built'} on %c${options.date}%c", "color: green;", '', "color: blue;", '')`
 }
 
 /**

@@ -1,10 +1,11 @@
 import { promises as fs } from 'node:fs'
 import process from 'node:process'
-import { type UnpluginFactory, createUnplugin } from 'unplugin'
+import type { UnpluginFactory } from 'unplugin'
+import { createUnplugin } from 'unplugin'
 import type { DeepRequired, Options, ResolvedOptions } from './types'
+import { createCompress } from './core/compress'
 import { generateScript } from './core/generate'
 import { resolveOptions } from './core/options'
-import { createCompress } from './core/compress'
 
 const virtualEnvId = 'virtual:env'
 const resolvedVirtualEnvId = `\0${virtualEnvId}`
