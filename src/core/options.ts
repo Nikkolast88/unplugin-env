@@ -28,6 +28,6 @@ export function resolveOptions(options: Options) {
 
   return {
     ...mergeOptions,
-    date: new Date().toString(),
+    date: new Date().toLocaleString(),
   } as ResolvedOptions
 }

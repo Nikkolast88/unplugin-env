@@ -2,10 +2,27 @@ import path, { resolve } from 'node:path'
 import { promises as fs } from 'node:fs'
 import process from 'node:process'
 import fg from 'fast-glob'
-import { loadFile } from 'magicast'
-import { deepMerge } from '@antfu/utils'
-import js_beautify from 'js-beautify'
+import recast from 'recast'
 import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
+
+// 遍历 AST，找到 export default 对象节点，进行合并（仅替换同名 key）
+function mergeObjects(prodObj: any, devObj: any) {
+  const prodProps = new Map(prodObj.properties.map((p: any) => [p.key.name || p.key.value, p]))
+
+  for (const prop of devObj.properties) {
+    const key = prop.key.name || prop.key.value
+    if (prodProps.has(key)) {
+      // 替换 prod 中的同名 key
+      const index = prodObj.properties.indexOf(prodProps.get(key))
+      if (index >= 0)
+        prodObj.properties[index] = prop
+    }
+    else {
+      // 不同名，直接添加
+      prodObj.properties.push(prop)
+    }
+  }
+}
 
 /**
  * 生成脚本
@@ -22,29 +39,36 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
   })
   // build or serve RegExp
   const testReg = mode === 'serve' ? serve : build
-  let target = {}
-  const source = []
+  let target = ''
+  let source = ''
   let code = ''
   const name = fileName
 
   for (const file of files) {
     try {
-      const mod = await loadFile(file)
+      const mod = await fs.readFile(file, 'utf-8')
       if (testReg?.test(file))
-        target = mod.exports.default
+        target = mod
 
       else
-        source.push(mod.exports.default)
+        source = mod
     }
     catch (error) {
       // Handle errors here if needed
       console.error(`Error loading file ${file}:`, error)
     }
   }
-  const returnedTarget = deepMerge({}, source, target)
+  const targetAst = recast.parse(target)
+  const sourceAst = recast.parse(source)
+  const targetExport = targetAst.program.body.find((n: any) => n.type === 'ExportDefaultDeclaration').declaration
+  const sourceExport = sourceAst.program.body.find((n: any) => n.type === 'ExportDefaultDeclaration').declaration
+  mergeObjects(sourceExport, targetExport)
+  // 重新生成代码（自动保留注释）
+  const mergedCode = recast.print(sourceExport).code
+  const returnedTarget = mergedCode
   const versionInfo = await generateVersion(options, mode)
-  code = `window.${globalName}=${JSON.stringify(returnedTarget)};${versionInfo}`
-  const formatCode = js_beautify.js_beautify(code)
+  code = `window.${globalName}=${returnedTarget};${versionInfo}`
+  const formatCode = code
   return {
     code,
     script: `  <script type="text/javascript" src="/${fileName}"></script>\n</head>`,
