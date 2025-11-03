@@ -15,8 +15,8 @@ export function resolveOptions(options: Options) {
       dir: 'config',
       fileName: 'manifest.js',
       globalName: 'manifest',
-      serve: /dev|development/i,
-      build: /prod|production/i,
+      serve: /dev/i,
+      build: /prod/i,
     },
     compress: {
       outDir: 'dist',

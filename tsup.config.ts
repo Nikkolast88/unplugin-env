@@ -7,7 +7,7 @@ export default <Options>{
   clean: true,
   format: ['cjs', 'esm'],
   dts: true,
-  target: 'node16',
+  target: 'node20',
   banner: {
     // https://github.com/evanw/esbuild/issues/1921
     js: `
