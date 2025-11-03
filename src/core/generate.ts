@@ -30,7 +30,7 @@ function mergeObjects(prodObj: any, devObj: any) {
  * @param mode - 模式，可以是'serve'或'build'
  * @returns 返回一个Promise，其值为GenerateScript对象
  */
-export async function generateScript(options: DeepRequired<ResolvedOptions>, mode: 'serve' | 'build'): Promise<GenerateScript> {
+export async function generateScript(options: DeepRequired<ResolvedOptions>, mode: 'serve' | 'build', base: string): Promise<GenerateScript> {
   const { dir, fileName, globalName, serve, build } = options.env
   const folder = await findFolder(process.cwd(), dir)
   const files = await fg('*.+(js|ts)', {
@@ -71,7 +71,7 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
   const formatCode = code
   return {
     code,
-    script: `  <script type="text/javascript" src="/${fileName}"></script>\n</head>`,
+    script: `  <script type="text/javascript" src="${base}${fileName}"></script>\n</head>`,
     emit: {
       type: 'asset',
       fileName: name,

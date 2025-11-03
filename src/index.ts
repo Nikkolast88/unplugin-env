@@ -8,6 +8,7 @@ import { createCompress } from './core/compress'
 
 const virtualEnvId = 'virtual:env'
 const resolvedVirtualEnvId = `\0${virtualEnvId}`
+let base = ''
 
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = {}) => {
   const resolved = resolveOptions(options)
@@ -15,13 +16,16 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     name: 'plugin-env-serve',
     apply: 'serve',
     enforce: 'post',
+    configResolved(config: any) {
+      base = config.base
+    },
     async resolveId(id) {
       if (id.startsWith(virtualEnvId))
         return resolvedVirtualEnvId
     },
     async load(id) {
       if (id.startsWith(resolvedVirtualEnvId)) {
-        const { code, watchFiles } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'serve')
+        const { code, watchFiles } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'serve', base)
 
         watchFiles.forEach((file) => {
           this.addWatchFile(file)
@@ -33,19 +37,22 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     name: 'unplugin-env-build',
     apply: 'build',
     enforce: 'post',
+    configResolved(config: any) {
+      base = config.base
+    },
     resolveId(id) {
       if (id.startsWith(virtualEnvId))
         return resolvedVirtualEnvId
     },
     async load(id) {
-      const { emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'build')
+      const { emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'build', base)
       if (id.startsWith(resolvedVirtualEnvId)) {
         this.emitFile(emit)
         return ''
       }
       if (id.endsWith('.html')) {
         let code = await fs.readFile(id, 'utf8')
-        code = code.replace(/<\/head>/gm, script)
+        code = code.replace(/<\/head>/g, script)
         return {
           code,
         }
