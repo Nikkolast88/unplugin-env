@@ -67,7 +67,7 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
   const mergedCode = recast.print(sourceExport).code
   const returnedTarget = mergedCode
   const versionInfo = await generateVersion(options, mode)
-  code = `window.${globalName}=${returnedTarget};${versionInfo}`
+  code = `window.${globalName}=${returnedTarget};\n${versionInfo}`
   const formatCode = code
   return {
     code,
@@ -94,7 +94,8 @@ async function generateVersion(options: ResolvedOptions, mode: 'serve' | 'build'
   })
   const packageString = await fs.readFile(packageFile[0], 'utf8')
   const packageJson = JSON.parse(packageString)
-  return `console.info("Version: ${packageJson.version} -  ${mode === 'serve' ? 'runtime' : 'built'} on ${options.date}")`
+  // 加粗
+  return `console.info("Version: %c${packageJson.version}%c -  ${mode === 'serve' ? 'runtime' : 'built'} on %c${options.date}%c", "color: green;", '', "color: blue;", '')`
 }
 
 /**
