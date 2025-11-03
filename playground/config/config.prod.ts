@@ -1,7 +1,7 @@
 export default {
   API: `${location.origin}`,
   sysName: '城市综合管理平台1',
-  copyRight: '深圳奇迹智慧网络有限公司1',
+  copyRight: '深圳XXXX网络有限公司1',
   AI_BASE_API: '',
   websocket_url: `wss://${location.host}/iot-api`,
   WS_BASE_API_CALL: `wss://${location.host}/ws`,
