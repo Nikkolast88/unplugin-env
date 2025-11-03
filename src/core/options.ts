@@ -25,9 +25,12 @@ export function resolveOptions(options: Options) {
   }
 
   const mergeOptions = deepMerge(defaults, options)
-
+  const formatter = new Intl.DateTimeFormat('zh-CN', {
+    dateStyle: 'full',
+    timeStyle: 'medium',
+  })
   return {
     ...mergeOptions,
-    date: new Date().toLocaleString(),
+    date: formatter.format(new Date()),
   } as ResolvedOptions
 }
