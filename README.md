@@ -4,12 +4,25 @@
 
 Starter template for [unplugin](https://github.com/unjs/unplugin).
 
+English | [简体中文](./README.zh-CN.md)
+
+## Requirements
+
+- **Node.js**: `^20.19.0 || >=22.12.0`
+- **Package Manager**: `pnpm >= 9.0.0` (recommended)
+- **Browsers**:
+  - Chrome >= 109
+  - Firefox >= 115
+  - Safari >= 15.6
+  - Edge >= 109
+  - No IE 11 support
+
 ## Template Usage
 
 To use this template, clone it down using:
 
 ```bash
-npx degit antfu/unplugin-env my-unplugin
+npx degit nikkolast88/unplugin-env my-unplugin
 ```
 
 And do a global replace of `unplugin-env` with your plugin name.
@@ -21,8 +34,22 @@ To release a new version, run: `pnpm run release`
 
 ## Install
 
+> **Note**: Requires Node.js `^20.19.0` or `>=22.12.0`
+
 ```bash
 npm i unplugin-env
+```
+
+### Using pnpm (Recommended)
+
+```bash
+pnpm add unplugin-env
+```
+
+### Using yarn
+
+```bash
+yarn add unplugin-env
 ```
 
 <details>
@@ -120,3 +147,43 @@ build({
 ```
 
 <br></details>
+
+## System Requirements
+
+### Runtime Environment
+
+| Environment | Minimum Version | Recommended |
+|------------|-----------------|-------------|
+| Node.js | `^20.19.0` or `>=22.12.0` | Latest LTS |
+| pnpm | `>=9.0.0` | `9.15.4+` |
+| npm | `>=9.0.0` | Latest |
+| yarn | `>=3.0.0` | Latest |
+
+### Browser Support
+
+This plugin generates code that runs in modern browsers:
+
+- ✅ Chrome/Edge >= 109
+- ✅ Firefox >= 115
+- ✅ Safari >= 15.6
+- ❌ Internet Explorer 11 (not supported)
+
+### Build Tool Compatibility
+
+| Tool | Version | Status |
+|------|---------|--------|
+| Vite | `>=5.0.0` | ✅ Fully supported |
+| Webpack | `^4` or `^5` | ✅ Fully supported |
+| Rollup | `>=3.0.0` | ✅ Fully supported |
+| esbuild | `>=0.15.0` | ✅ Fully supported |
+| Nuxt | `^3` or `^4` | ✅ Fully supported |
+
+### Why These Requirements?
+
+- **Node.js 20.19+**: Required by Vite 7 and ESLint 9
+- **Modern Browsers**: Plugin uses ES6+ features (no transpilation for IE11)
+- **pnpm 9+**: Optimized for Node.js 20 with better performance and workspace support
+
+## License
+
+MIT License © 2023-PRESENT [Nikkolast88]
