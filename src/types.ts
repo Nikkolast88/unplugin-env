@@ -39,7 +39,7 @@ export type DeepRequired<T> = {
 
 // 使用交叉类型将Options转换为必填类型
 export type ResolvedOptions = DeepRequired<Options> & {
-  date: string
+  datetime: string
 }
 
 export interface GenerateScript {

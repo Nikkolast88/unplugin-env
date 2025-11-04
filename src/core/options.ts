@@ -19,7 +19,7 @@ export function resolveOptions(options: Options) {
       build: /prod/i,
     },
     compress: {
-      ignoreBase: true,
+      ignoreBase: false,
     },
   }
 
@@ -30,6 +30,6 @@ export function resolveOptions(options: Options) {
   })
   return {
     ...mergeOptions,
-    date: formatter.format(new Date()),
+    datetime: formatter.format(new Date()),
   } as ResolvedOptions
 }

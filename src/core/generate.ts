@@ -91,7 +91,7 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
 async function generateVersion(options: ResolvedOptions, mode: 'serve' | 'build') {
   const pkg = await getPackageInfo(process.cwd())
   // 加入版本信息
-  return `console.info("Version: %c${pkg?.version}%c -  ${mode === 'serve' ? 'runtime' : 'built'} on %c${options.date}%c", "color: green;", '', "color: blue;", '')`
+  return `console.info("Version: %c${pkg?.version}%c -  ${mode === 'serve' ? 'runtime' : 'built'} on %c${options.datetime}%c", "color: green;", '', "color: blue;", '')`
 }
 
 /**

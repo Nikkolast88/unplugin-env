@@ -19,7 +19,9 @@ export async function createCompress(options: DeepRequired<ResolvedOptions['comp
 
       // 事件处理
       output.on('close', () => {
-        Log.success('Successfully compressed to', `${zipFilePath} (${(archive.pointer() / 1024 / 1024).toFixed(1)} MB)`)
+        const size = archive.pointer()
+        const sizeInMB = size > 1024 * 1024 ? `${(size / 1024 / 1024).toFixed(1)} MB` : `${(size / 1024).toFixed(1)} KB`
+        Log.success('Successfully compressed to', `${zipFilePath} (${sizeInMB})`)
         resolve(null)
       })
 
