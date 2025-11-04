@@ -28,7 +28,6 @@ export interface Options {
     build?: RegExp
   }
   compress?: {
-    outDir?: string
     ignoreBase?: boolean
   }
 }

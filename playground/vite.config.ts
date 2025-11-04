@@ -8,10 +8,6 @@ export default defineConfig({
   },
   plugins: [
     Inspect(),
-    Unplugin({
-      compress: {
-        outDir: 'playground',
-      },
-    }),
+    Unplugin(),
   ],
 })

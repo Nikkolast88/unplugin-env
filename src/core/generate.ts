@@ -1,10 +1,10 @@
+import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
 import { getPackageInfo } from 'local-pkg'
 import recast from 'recast'
-import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
 
 // 遍历 AST，找到 export default 对象节点，进行合并（仅替换同名 key）
 function mergeObjects(prodObj: any, devObj: any) {

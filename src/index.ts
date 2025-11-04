@@ -1,8 +1,8 @@
+import type { UnpluginFactory } from 'unplugin'
+import type { DeepRequired, Options, ResolvedOptions } from './types'
 import { promises as fs } from 'node:fs'
 import process from 'node:process'
-import type { UnpluginFactory } from 'unplugin'
 import { createUnplugin } from 'unplugin'
-import type { DeepRequired, Options, ResolvedOptions } from './types'
 import { createCompress } from './core/compress'
 import { generateScript } from './core/generate'
 import { resolveOptions } from './core/options'
@@ -10,6 +10,7 @@ import { resolveOptions } from './core/options'
 const virtualEnvId = 'virtual:env'
 const resolvedVirtualEnvId = `\0${virtualEnvId}`
 let base = ''
+let outDir = ''
 
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = {}) => {
   const resolved = resolveOptions(options)
@@ -18,6 +19,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     apply: 'serve',
     enforce: 'post',
     configResolved(config: any) {
+      outDir = config.build.outDir
       base = config.base
     },
     async resolveId(id) {
@@ -40,6 +42,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     enforce: 'post',
     configResolved(config: any) {
       base = config.base
+      outDir = config.build.outDir
     },
     resolveId(id) {
       if (id.startsWith(virtualEnvId))
@@ -64,7 +67,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     buildEnd: () => {
       process.on('beforeExit', async () => {
         const { compress } = resolved
-        await createCompress(compress as DeepRequired<ResolvedOptions['compress']>)
+        await createCompress(compress as DeepRequired<ResolvedOptions['compress']>, outDir)
         process.exit(0)
       })
     },

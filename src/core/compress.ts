@@ -1,12 +1,12 @@
+import type { DeepRequired, ResolvedOptions } from '../types' // 假设你有一个名为 'types' 的文件，其中包含了 ResolvedOptions 类型的定义
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import archiver from 'archiver'
-import type { DeepRequired, ResolvedOptions } from '../types' // 假设你有一个名为 'types' 的文件，其中包含了 ResolvedOptions 类型的定义
 import { Log } from './log'
 
-export async function createCompress(options: DeepRequired<ResolvedOptions['compress']>) {
-  const { outDir, ignoreBase } = options
+export async function createCompress(options: DeepRequired<ResolvedOptions['compress']>, outDir: string) {
+  const { ignoreBase } = options
   const zipFilePath = path.resolve(process.cwd(), `${path.basename(outDir)}.zip`) // 压缩文件的路径为 outDir.zip
 
   Log.log('Compressing the directory', outDir)
