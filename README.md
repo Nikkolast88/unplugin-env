@@ -1,6 +1,9 @@
 # unplugin-env
 
 [![NPM version](https://img.shields.io/npm/v/unplugin-env?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-env)
+[![CI](https://github.com/Nikkolast88/unplugin-env/actions/workflows/ci.yml/badge.svg)](https://github.com/Nikkolast88/unplugin-env/actions/workflows/ci.yml)
+[![npm downloads](https://img.shields.io/npm/dm/unplugin-env)](https://www.npmjs.com/package/unplugin-env)
+[![License](https://img.shields.io/npm/l/unplugin-env)](./LICENSE)
 
 Starter template for [unplugin](https://github.com/unjs/unplugin).
 
