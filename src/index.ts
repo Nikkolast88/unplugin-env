@@ -5,69 +5,76 @@ import process from 'node:process'
 import { createUnplugin } from 'unplugin'
 import { createCompress } from './core/compress'
 import { generateScript } from './core/generate'
-import { resolveOptions } from './core/options'
+import { createUnifiedContext, resolveOptions } from './core/options'
 
 const virtualEnvId = 'virtual:env'
 const resolvedVirtualEnvId = `\0${virtualEnvId}`
-let base = ''
-let outDir = ''
+const ctx = createUnifiedContext()
 
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = {}) => {
   const resolved = resolveOptions(options)
   return [{
-    name: 'plugin-env-serve',
-    apply: 'serve',
+    name: 'plugin-env',
     enforce: 'post',
-    configResolved(config: any) {
-      outDir = config.build.outDir
-      base = config.base
+    rollup: {
+      outputOptions(outputOptions) {
+        ctx.setRollup(outputOptions)
+      },
+    },
+    vite: {
+      configResolved(config) {
+        ctx.setVite(config)
+      },
+    },
+    webpack(compiler) {
+      ctx.setWebpack(compiler)
+    },
+    rspack: (compiler) => {
+      ctx.setRspack(compiler)
+    },
+    esbuild: {
+      setup(build) {
+        ctx.setEsbuild(build)
+      },
+    },
+    farm(compiler: any) {
+      ctx.setFarm(compiler)
+    },
+    rolldown: {
+      outputOptions(outputOptions: any) {
+        ctx.setRolldown(outputOptions)
+      },
     },
     async resolveId(id) {
       if (id.startsWith(virtualEnvId))
         return resolvedVirtualEnvId
     },
     async load(id) {
-      if (id.startsWith(resolvedVirtualEnvId)) {
-        const { code, watchFiles } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'serve', base)
-
-        watchFiles.forEach((file) => {
-          this.addWatchFile(file)
-        })
-        return code
-      }
-    },
-  }, {
-    name: 'unplugin-env-build',
-    apply: 'build',
-    enforce: 'post',
-    configResolved(config: any) {
-      base = config.base
-      outDir = config.build.outDir
-    },
-    resolveId(id) {
-      if (id.startsWith(virtualEnvId))
-        return resolvedVirtualEnvId
-    },
-    async load(id) {
-      const { emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'build', base)
-      if (id.startsWith(resolvedVirtualEnvId)) {
-        this.emitFile(emit)
-        return ''
-      }
-      if (id.endsWith('.html')) {
-        let code = await fs.readFile(id, 'utf8')
-        code = code.replace(/<\/head>/g, script)
-        return {
-          code,
+      const { code, watchFiles, emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'serve', ctx.base)
+      if (ctx.isDev) {
+        if (id.startsWith(resolvedVirtualEnvId)) {
+          watchFiles.forEach((file) => {
+            this.addWatchFile(file)
+          })
+          return code
         }
       }
-
-      return null
+      else {
+        if (id.startsWith(resolvedVirtualEnvId)) {
+          this.emitFile(emit)
+          return ''
+        }
+        if (id.endsWith('.html')) {
+          let code = await fs.readFile(id, 'utf-8')
+          code = code.replace(/<\/head>/g, script)
+          return { code }
+        }
+      }
     },
     buildEnd: () => {
       process.on('beforeExit', async () => {
         const { compress } = resolved
-        await createCompress(compress as DeepRequired<ResolvedOptions['compress']>, outDir)
+        await createCompress(compress as DeepRequired<ResolvedOptions['compress']>, ctx.outDir)
         process.exit(0)
       })
     },
