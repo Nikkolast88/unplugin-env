@@ -4,45 +4,45 @@ import { promises as fs } from 'node:fs'
 import process from 'node:process'
 import { createUnplugin } from 'unplugin'
 import { createCompress } from './core/compress'
-import { generateScript } from './core/generate'
 import { createUnifiedContext, resolveOptions } from './core/options'
 
 const virtualEnvId = 'virtual:env'
 const resolvedVirtualEnvId = `\0${virtualEnvId}`
-const ctx = createUnifiedContext()
 
 export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = {}) => {
-  const resolved = resolveOptions(options)
+  const resolved = resolveOptions(options) as DeepRequired<ResolvedOptions>
+  const ctx = createUnifiedContext(resolved)
   return [{
     name: 'plugin-env',
     enforce: 'post',
     rollup: {
       outputOptions(outputOptions) {
         ctx.setRollup(outputOptions)
+        return outputOptions
       },
     },
     vite: {
-      configResolved(config) {
-        ctx.setVite(config)
+      async configResolved(config) {
+        await ctx.setVite(config)
       },
     },
-    webpack(compiler) {
-      ctx.setWebpack(compiler)
+    async webpack(compiler) {
+      await ctx.setWebpack(compiler)
     },
-    rspack: (compiler) => {
-      ctx.setRspack(compiler)
+    rspack: async (compiler) => {
+      await ctx.setRspack(compiler)
     },
     esbuild: {
-      setup(build) {
-        ctx.setEsbuild(build)
+      async setup(build) {
+        await ctx.setEsbuild(build)
       },
     },
-    farm(compiler: any) {
-      ctx.setFarm(compiler)
+    async farm(compiler: any) {
+      await ctx.setFarm(compiler)
     },
     rolldown: {
-      outputOptions(outputOptions: any) {
-        ctx.setRolldown(outputOptions)
+      async outputOptions(outputOptions: any) {
+        await ctx.setRolldown(outputOptions)
       },
     },
     async resolveId(id) {
@@ -50,7 +50,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
         return resolvedVirtualEnvId
     },
     async load(id) {
-      const { code, watchFiles, emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, ctx)
+      const { code, watchFiles, emit, script } = ctx.scriptInfo
       if (ctx.isDev) {
         if (id.startsWith(resolvedVirtualEnvId)) {
           watchFiles.forEach((file) => {

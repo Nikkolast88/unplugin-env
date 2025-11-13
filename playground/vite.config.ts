@@ -4,7 +4,7 @@ import Unplugin from '../src/vite'
 
 export default defineConfig({
   build: {
-    outDir: 'playground',
+    outDir: 'vite-dist',
   },
   plugins: [
     Inspect(),

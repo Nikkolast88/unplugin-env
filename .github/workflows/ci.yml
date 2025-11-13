@@ -32,7 +32,7 @@ jobs:
         run: pnpm lint
 
       - name: Playground Build
-        run: pnpm -C playground build
+        run: pnpm -C playground build:vite
 
       - name: Build
         run: pnpm build

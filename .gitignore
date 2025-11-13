@@ -85,5 +85,5 @@ dist
 
 *.zip
 
-# Playground build output
-playground/playground/
+# *-dist
+playground/**-dist/

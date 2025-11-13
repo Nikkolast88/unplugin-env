@@ -3,18 +3,11 @@ import type { OutputOptions as RollupOutputOptions } from 'rollup'
 import type { ResolvedConfig as ViteConfig } from 'vite'
 
 import type { Compiler as WebpackCompiler } from 'webpack'
-import type { Options, ResolvedOptions } from '../types'
+import type { DeepRequired, Options, ResolvedOptions } from '../types'
 import process from 'node:process'
 import { deepMerge } from '@antfu/utils'
+import { generateScript } from './generate'
 
-// 当配置项为数据数据类型时，需注意拷贝问题
-// var a = {a: 1, b: 2, env: { a: 1, b:2 }};var b = {c: 3, env: {c: 3}};console.log({...a, ...b})
-// a: 1
-// b: 2
-// c: 3
-// env
-// :
-// {c: 3}
 export function resolveOptions(options: Options) {
   const defaults = {
     env: {
@@ -46,18 +39,6 @@ interface ExtendedEsbuildBuild extends EsbuildBuild {
   }
 }
 
-// 新增 Farm 与 Rolldown 类型（可选）
-interface FarmCompiler {
-  config: {
-    output?: { publicPath?: string, path?: string }
-    mode?: 'development' | 'production'
-  }
-}
-
-interface RolldownOutputOptions {
-  dir?: string
-}
-
 export type FrameworkType
   = | 'vite'
     | 'rollup'
@@ -77,6 +58,16 @@ export interface UnifiedContext {
   mode: UnifiedMode
   isDev: boolean
   isBuild: boolean
+  scriptInfo: {
+    code: string
+    script: string
+    emit: {
+      type: 'asset'
+      source: string
+      fileName: string
+    }
+    watchFiles: string[]
+  }
 
   setVite: (config: ViteConfig) => void
   setRollup: (options: RollupOutputOptions) => void
@@ -87,12 +78,22 @@ export interface UnifiedContext {
   setRolldown: (options: any) => void
 }
 
-export function createUnifiedContext(): UnifiedContext {
+export function createUnifiedContext(resolved: DeepRequired<ResolvedOptions>): UnifiedContext {
   const ctx: UnifiedContext = {
     framework: '',
     base: '/',
     outDir: 'dist',
     mode: 'build',
+    scriptInfo: {
+      code: '',
+      script: '',
+      emit: {
+        type: 'asset',
+        source: '',
+        fileName: '',
+      },
+      watchFiles: [],
+    },
 
     get isDev() {
       return this.mode === 'dev'
@@ -102,60 +103,67 @@ export function createUnifiedContext(): UnifiedContext {
     },
 
     // --- VITE ---
-    setVite(config) {
+    async setVite(config) {
       this.framework = 'vite'
       this.base = config.base || '/'
       this.outDir = config.build?.outDir || 'dist'
       this.mode = config.command === 'serve' ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
 
     // --- ROLLUP ---
-    setRollup(options) {
+    async setRollup(options) {
       this.framework = 'rollup'
       this.outDir = options.dir || 'dist'
       this.mode = process.env.ROLLUP_WATCH ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
 
     // --- WEBPACK ---
-    setWebpack(compiler) {
+    async setWebpack(compiler) {
       this.framework = 'webpack'
       this.base = (compiler.options.output?.publicPath as string) || '/'
       this.outDir = compiler.options.output?.path || 'dist'
       const raw = compiler.options.mode || 'production'
       this.mode = raw === 'development' ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
 
     // --- RSPACK ---
-    setRspack(compiler) {
+    async setRspack(compiler) {
       this.framework = 'rspack'
       // Rspack 兼容 Webpack 配置结构
       this.base = (compiler.options.output?.publicPath as string) || '/'
       this.outDir = compiler.options.output?.path || 'dist'
       const raw = compiler.options.mode || 'production'
       this.mode = raw === 'development' ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
 
     // --- ESBUILD ---
-    setEsbuild(build) {
+    async setEsbuild(build) {
       this.framework = 'esbuild'
       this.outDir = build.initialOptions.outdir || 'dist'
       this.mode = (build.initialOptions as any).watch ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
 
     // --- FARM ---
-    setFarm(compiler) {
+    async setFarm(compiler) {
       this.framework = 'farm'
       this.base = compiler.config.output?.publicPath || '/'
       this.outDir = compiler.config.output?.path || 'dist'
       const raw = compiler.config.mode || 'production'
       this.mode = raw === 'development' ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
 
     // --- ROLLDOWN ---
-    setRolldown(options) {
+    async setRolldown(options) {
       this.framework = 'rolldown'
       this.outDir = options.dir || 'dist'
       this.mode = process.env.ROLLDOWN_WATCH ? 'dev' : 'build'
+      ctx.scriptInfo = await generateScript(resolved, ctx)
     },
   }
 

@@ -29,7 +29,7 @@ function mergeObjects(prodObj: any, devObj: any) {
 /**
  * 生成脚本
  * @param options - 解析的选项
- * @param mode - 模式，可以是'serve'或'build'
+ * @param context - 统一上下文
  * @returns 返回一个Promise，其值为GenerateScript对象
  */
 export async function generateScript(options: DeepRequired<ResolvedOptions>, context: UnifiedContext): Promise<GenerateScript> {
