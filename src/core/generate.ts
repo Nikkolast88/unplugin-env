@@ -1,4 +1,5 @@
 import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
+import type { UnifiedContext } from './options'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -31,15 +32,16 @@ function mergeObjects(prodObj: any, devObj: any) {
  * @param mode - 模式，可以是'serve'或'build'
  * @returns 返回一个Promise，其值为GenerateScript对象
  */
-export async function generateScript(options: DeepRequired<ResolvedOptions>, mode: 'serve' | 'build', base: string): Promise<GenerateScript> {
+export async function generateScript(options: DeepRequired<ResolvedOptions>, context: UnifiedContext): Promise<GenerateScript> {
   const { dir, fileName, globalName, serve, build } = options.env
   const folder = await findFolder(process.cwd(), dir)
   const files = await fg('*.+(js|ts)', {
     absolute: true,
     cwd: folder,
   })
+  const { mode, base } = context
   // build or serve RegExp
-  const testReg = mode === 'serve' ? serve : build
+  const testReg = mode === 'dev' ? serve : build
   let target = ''
   let source = ''
   let code = ''
@@ -85,13 +87,13 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, mod
 /**
  * 生成版本信息
  * @param options - 解析的选项
- * @param mode - 模式，可以是'serve'或'build'
+ * @param mode - 模式，可以是'dev'或'build'
  * @returns 返回版本信息的字符串
  */
-async function generateVersion(options: ResolvedOptions, mode: 'serve' | 'build') {
+async function generateVersion(options: ResolvedOptions, mode: UnifiedContext['mode']): Promise<string> {
   const pkg = await getPackageInfo(process.cwd())
-  // 加入版本信息
-  return `console.info("Version: %c${pkg?.version}%c -  ${mode === 'serve' ? 'runtime' : 'built'} on %c${options.datetime}%c", "color: green;", '', "color: blue;", '')`
+  // 加入版本信息、时间戳、描述等
+  return `console.info("Version: %c${pkg?.version}%c -  ${mode === 'dev' ? 'runtime' : 'built'} on %c${options.datetime}%c", "color: green;", '', "color: blue;", '')`
 }
 
 /**

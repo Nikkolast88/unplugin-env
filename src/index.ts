@@ -50,7 +50,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
         return resolvedVirtualEnvId
     },
     async load(id) {
-      const { code, watchFiles, emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, 'serve', ctx.base)
+      const { code, watchFiles, emit, script } = await generateScript(resolved as DeepRequired<ResolvedOptions>, ctx)
       if (ctx.isDev) {
         if (id.startsWith(resolvedVirtualEnvId)) {
           watchFiles.forEach((file) => {

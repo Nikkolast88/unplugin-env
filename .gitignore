@@ -84,3 +84,6 @@ dist
 .DS_Store
 
 *.zip
+
+# Playground build output
+playground/playground/
