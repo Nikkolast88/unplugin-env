@@ -1,11 +1,11 @@
 import type { DeepRequired, GenerateScript, ResolvedOptions } from '../types'
 import type { UnifiedContext } from './options'
+import { execSync } from 'node:child_process'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
-import { getPackageInfo } from 'local-pkg'
-import recast from 'recast'
+import * as recast from 'recast'
 
 // 遍历 AST，找到 export default 对象节点，进行合并（仅替换同名 key）
 function mergeObjects(prodObj: any, devObj: any) {
@@ -72,9 +72,10 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, con
   const versionInfo = await generateVersion(options, mode)
   code = `window.${globalName}=${returnedTarget};\n${versionInfo}`
   const formatCode = code
+  const viteIgnoreAttr = context.framework === 'vite' ? ' vite-ignore' : ''
   return {
     code,
-    script: `  <script type="text/javascript" src="${base}${fileName}"></script>\n</head>`,
+    script: `  <script type="text/javascript"${viteIgnoreAttr} src="${base}${fileName}"></script>\n</head>`,
     emit: {
       type: 'asset',
       fileName: name,
@@ -84,16 +85,117 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, con
   }
 }
 
+async function getFullPackageJson(cwd = process.cwd()) {
+  const pkgPath = path.resolve(cwd, 'package.json')
+  const content = await fs.readFile(pkgPath, 'utf-8')
+  return JSON.parse(content)
+}
+
+function wrapText(text: string, maxLen: number): string[] {
+  const lines: string[] = []
+  let current = ''
+
+  for (const char of text) {
+    current += char
+    if (current.length >= maxLen) {
+      lines.push(current)
+      current = ''
+    }
+  }
+
+  if (current)
+    lines.push(current)
+
+  return lines
+}
+
 /**
  * 生成版本信息
  * @param options - 解析的选项
  * @param mode - 模式，可以是'dev'或'build'
  * @returns 返回版本信息的字符串
  */
-async function generateVersion(options: ResolvedOptions, mode: UnifiedContext['mode']): Promise<string> {
-  const pkg = await getPackageInfo(process.cwd())
-  // 加入版本信息、时间戳、描述等
-  return `console.info("Version: %c${pkg?.version}%c -  ${mode === 'dev' ? 'runtime' : 'built'} on %c${options.datetime}%c", "color: green;", '', "color: blue;", '')`
+async function generateVersion(
+  options: ResolvedOptions,
+  mode: UnifiedContext['mode'],
+): Promise<string> {
+  const pkg = await getFullPackageJson(process.cwd())
+
+  const name = pkg?.name ?? 'Unknown App'
+  const version = `v${pkg?.version ?? '0.0.0'}`
+  const branchName = getBranchName() || 'unknown'
+  const commitHash = getCommitHash() || 'unknown'
+  const datetime = options.datetime
+  const stateLabel = mode === 'dev' ? 'runtime' : 'built'
+  const stateColor = mode === 'dev' ? '#059669' : '#2563EB'
+
+  // ===== Desc 自动换行 =====
+  const MAX_DESC_LINE_LEN = 36
+  const rawDesc = pkg?.description ?? 'unknown'
+  const descLines = wrapText(rawDesc, MAX_DESC_LINE_LEN)
+
+  // ===== 横线 =====
+  const baseLines = [
+    `${name}  ${version}  ${stateLabel}`,
+    `Branch : ${branchName}`,
+    `Commit : ${commitHash}`,
+    `Time   : ${datetime}`,
+    `Desc   : ${descLines[0]}`,
+    ...descLines.slice(1).map(l => `         ${l}`),
+  ]
+  const maxLen = Math.max(...baseLines.map(l => l.length))
+  const divider = '-'.repeat(maxLen + 4)
+
+  // ===== console 文本 =====
+  const textParts: string[] = [
+    `${divider}\n`,
+    ` ${name} `,
+    ` ${version} `,
+    ` ${stateLabel}\n`,
+    `${divider}\n`,
+    ` Branch :`,
+    ` ${branchName}\n`,
+    ` Commit :`,
+    ` ${commitHash}\n`,
+    ` Time   :`,
+    ` ${datetime}\n`,
+    ` Desc   :`,
+    ` ${descLines[0]}\n`,
+    ...descLines.slice(1).map(l => `          ${l}\n`),
+    `${divider}`,
+  ]
+
+  // ===== 对应的 style =====
+  const styles: string[] = [
+    'color:#9CA3AF', // divider
+    'color:#111827;font-weight:600', // name
+    'color:#2563EB;font-weight:600', // version
+    `color:${stateColor};font-weight:600`, // state
+    'color:#9CA3AF', // divider
+
+    'color:#6B7280', // Branch label
+    'color:#111827',
+
+    'color:#6B7280', // Commit label
+    'color:#111827',
+
+    'color:#6B7280', // Time label
+    'color:#2563EB',
+
+    'color:#6B7280', // Desc label
+    'color:#4B5563',
+
+    ...descLines.slice(1).map(() => 'color:#4B5563'),
+
+    'color:#9CA3AF', // divider
+  ]
+
+  return `
+console.log(
+  ${JSON.stringify(`%c${textParts.join('%c')}`)},
+  ${styles.map(s => JSON.stringify(s)).join(',\n  ')}
+)
+`.trim()
 }
 
 /**
@@ -122,4 +224,16 @@ async function findFolder(directoryPath: string, dir: string): Promise<string> {
     }
   }
   return ''
+}
+
+// 获取当前git分支名
+function getBranchName(): string {
+  const branchName = execSync('git rev-parse --abbrev-ref HEAD').toString().trim()
+  return branchName
+}
+
+// 获取当前分支最后一次提交hash，前八位
+function getCommitHash(): string {
+  const commitHash = execSync('git rev-parse HEAD').toString().trim()
+  return commitHash.slice(0, 8)
 }

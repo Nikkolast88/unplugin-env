@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "nodemon -w '../src/**/*.ts' -e .ts -x vite",
     "build:vite": "vite build",
-    "build:webpack": "webpack --config webpack.config.js",
-    "build:rollup": "rollup -c rollup.config.js"
+    "build:webpack": "NODE_OPTIONS=--import=tsx webpack --config webpack.config.js",
+    "build:rollup": "NODE_OPTIONS=--import=tsx rollup -c rollup.config.js"
   },
   "dependencies": {
     "rollup": "^4.52.5",
@@ -14,7 +14,9 @@
     "webpack": "^5.102.1"
   },
   "devDependencies": {
+    "@rollup/plugin-html": "^2.0.0",
     "html-webpack-plugin": "^5.6.4",
+    "tsx": "^4.20.5",
     "vite-plugin-inspect": "^11.3.3",
     "webpack-cli": "^6.0.1"
   }
