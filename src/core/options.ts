@@ -69,13 +69,13 @@ export interface UnifiedContext {
     watchFiles: string[]
   }
 
-  setVite: (config: ViteConfig) => void
-  setRollup: (options: RollupOutputOptions) => void
-  setWebpack: (compiler: WebpackCompiler) => void
-  setRspack: (compiler: WebpackCompiler) => void
-  setEsbuild: (build: ExtendedEsbuildBuild) => void
-  setFarm: (compiler: any) => void
-  setRolldown: (options: any) => void
+  setVite: (config: ViteConfig) => Promise<void>
+  setRollup: (options: RollupOutputOptions) => Promise<void>
+  setWebpack: (compiler: WebpackCompiler) => Promise<void>
+  setRspack: (compiler: WebpackCompiler) => Promise<void>
+  setEsbuild: (build: ExtendedEsbuildBuild) => Promise<void>
+  setFarm: (compiler: any) => Promise<void>
+  setRolldown: (options: any) => Promise<void>
 }
 
 export function createUnifiedContext(resolved: DeepRequired<ResolvedOptions>): UnifiedContext {

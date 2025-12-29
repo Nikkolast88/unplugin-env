@@ -26,6 +26,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
   const resolved = resolveOptions(options) as DeepRequired<ResolvedOptions>
   const ctx = createUnifiedContext(resolved)
   let frameworkReady: Promise<void> | null = null
+  let legacyEmitHooked = false
   return [{
     name: 'plugin-env',
     enforce: 'post',
@@ -47,6 +48,7 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
     async webpack(compiler) {
       frameworkReady = ctx.setWebpack(compiler)
       const webpackLib = compiler.webpack
+      const RawSource = (webpackLib as any)?.sources?.RawSource
       compiler.hooks.thisCompilation.tap('plugin-env', (compilation) => {
         if (webpackLib?.Compilation?.PROCESS_ASSETS_STAGE_PRE_PROCESS) {
           const { Compilation, sources } = webpackLib
@@ -85,10 +87,10 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
             },
           )
         }
-        else {
-          compilation.hooks.emit.tapAsync('plugin-env', async (comp, cb) => {
-            try {
-              await frameworkReady
+        else if (!legacyEmitHooked) {
+          legacyEmitHooked = true
+          compiler.hooks.emit.tapAsync('plugin-env', (comp, cb) => {
+            const run = () => {
               const { script } = ctx.scriptInfo
               if (!script)
                 return cb()
@@ -102,16 +104,21 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
                   continue
                 const nextHtml = html.replace(/<\/head>/i, script)
                 if (nextHtml !== html) {
-                  comp.assets[name] = {
-                    source: () => nextHtml,
-                    size: () => nextHtml.length,
-                  }
+                  comp.assets[name] = RawSource
+                    ? new RawSource(nextHtml)
+                    : ({
+                        source: () => nextHtml,
+                        size: () => nextHtml.length,
+                      } as any)
                 }
               }
               cb()
             }
-            catch (error) {
-              cb(error as Error)
+            if (frameworkReady) {
+              frameworkReady.then(run).catch(error => cb(error as Error))
+            }
+            else {
+              run()
             }
           })
         }
@@ -183,10 +190,16 @@ export const unpluginFactory: UnpluginFactory<Options | undefined> = (options = 
       return code.replaceAll(virtualEnvId, virtualEnvAliasId)
     },
     buildEnd: () => {
-      process.on('beforeExit', async () => {
+      process.on('beforeExit', () => {
         const { compress } = resolved
-        await createCompress(compress as DeepRequired<ResolvedOptions['compress']>, ctx.outDir)
-        process.exit(0)
+        createCompress(compress as DeepRequired<ResolvedOptions['compress']>, ctx.outDir)
+          .then(() => {
+            process.exit(0)
+          })
+          .catch((error) => {
+            process.exitCode = 1
+            throw error
+          })
       })
     },
   }]
