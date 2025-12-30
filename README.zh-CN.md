@@ -153,6 +153,32 @@ build({
 
 <br></details>
 
+## 配置项
+
+```ts
+Starter({
+  env: {
+    configDir: 'config',
+    emitFileName: 'manifest.js',
+    emitDir: 'assets',
+    globalName: 'manifest',
+    devMatch: /dev/i,
+    buildMatch: /prod/i,
+  },
+  compress: {
+    includeBaseDir: true,
+  },
+})
+```
+
+- `env.configDir`: 配置文件所在目录。
+- `env.emitFileName`: 输出文件名（用于 emit 和注入脚本）。
+- `env.emitDir`: 输出子目录（相对于构建输出目录）。
+- `env.globalName`: 挂到 `window` 的全局变量名。
+- `env.devMatch`: 匹配开发环境配置文件的正则。
+- `env.buildMatch`: 匹配生产环境配置文件的正则。
+- `compress.includeBaseDir`: 压缩时是否保留顶层目录。
+
 ## 系统要求详情
 
 ### 运行环境

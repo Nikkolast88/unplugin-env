@@ -7,28 +7,36 @@ export interface Options {
      */
     globalName?: string
     /**
-     * 配置文件名
+     * 输出文件名
      * manifest.js
      */
-    fileName?: string
+    emitFileName?: string
     /**
-     * config.dev|prod.ts配置文件存放位置
+     * 输出目录
+     * assets
+     */
+    emitDir?: string
+    /**
+     * config.dev|prod.ts 配置文件存放位置
      * config
      */
-    dir?: string
+    configDir?: string
     /**
      * 用于正则，文件名中包含其中的开发环境
      * /dev|development/i
      */
-    serve?: RegExp
+    devMatch?: RegExp
     /**
      * 用于正则，文件名中包含其中的生产环境
      * /prod|production/i
      */
-    build?: RegExp
+    buildMatch?: RegExp
   }
   compress?: {
-    ignoreBase?: boolean
+    /**
+     * 是否保留外层目录
+     */
+    includeBaseDir?: boolean
   }
 }
 

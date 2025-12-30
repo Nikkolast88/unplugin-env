@@ -11,14 +11,15 @@ import { generateScript } from './generate'
 export function resolveOptions(options: Options) {
   const defaults = {
     env: {
-      dir: 'config',
-      fileName: 'manifest.js',
+      configDir: 'config',
+      emitFileName: 'manifest.js',
+      emitDir: '',
       globalName: 'manifest',
-      serve: /dev/i,
-      build: /prod/i,
+      devMatch: /dev/i,
+      buildMatch: /prod/i,
     },
     compress: {
-      ignoreBase: false,
+      includeBaseDir: true,
     },
   }
 

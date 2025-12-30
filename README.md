@@ -151,6 +151,32 @@ build({
 
 <br></details>
 
+## Options
+
+```ts
+Starter({
+  env: {
+    configDir: 'config',
+    emitFileName: 'manifest.js',
+    emitDir: 'assets',
+    globalName: 'manifest',
+    devMatch: /dev/i,
+    buildMatch: /prod/i,
+  },
+  compress: {
+    includeBaseDir: true,
+  },
+})
+```
+
+- `env.configDir`: directory to locate config files.
+- `env.emitFileName`: output file name for the emitted asset and injected script.
+- `env.emitDir`: subdirectory under the build output directory.
+- `env.globalName`: global variable name on `window`.
+- `env.devMatch`: regex to pick the dev config file.
+- `env.buildMatch`: regex to pick the build config file.
+- `compress.includeBaseDir`: keep the top-level folder inside the zip.
+
 ## System Requirements
 
 ### Runtime Environment

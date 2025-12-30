@@ -14,7 +14,7 @@ export async function createCompress(
   options: DeepRequired<ResolvedOptions['compress']>,
   outDir: string,
 ) {
-  const { ignoreBase } = options
+  const { includeBaseDir } = options
 
   // 输出文件路径，例如 dist.zip
   const zipFilePath = path.resolve(process.cwd(), `${path.basename(outDir)}.zip`)
@@ -25,7 +25,7 @@ export async function createCompress(
   try {
     const zip = new Zip()
 
-    if (ignoreBase) {
+    if (!includeBaseDir) {
       // 直接把目录内容塞进 zip 根目录
       zip.addFolder(absoluteOutDir)
     }

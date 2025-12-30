@@ -34,10 +34,10 @@ function mergeObjects(prodObj: any, devObj: any) {
  * @returns 返回一个Promise，其值为GenerateScript对象
  */
 export async function generateScript(options: DeepRequired<ResolvedOptions>, context: UnifiedContext): Promise<GenerateScript> {
-  const { dir, fileName, globalName, serve, build } = options.env
-  const folder = await resolveConfigFolder(process.cwd(), dir)
+  const { configDir, emitFileName, emitDir, globalName, devMatch, buildMatch } = options.env
+  const folder = await resolveConfigFolder(process.cwd(), configDir)
   if (!folder)
-    throw new Error(`[unplugin-env] Config directory "${dir}" not found from ${process.cwd()}`)
+    throw new Error(`[unplugin-env] Config directory "${configDir}" not found from ${process.cwd()}`)
   const files = await fg('*.{js,ts}', {
     absolute: true,
     cwd: folder,
@@ -46,13 +46,13 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, con
     throw new Error(`[unplugin-env] No config files found in ${folder}`)
   const { mode, base } = context
   // build or serve RegExp
-  const testReg = mode === 'dev' ? serve : build
+  const testReg = mode === 'dev' ? devMatch : buildMatch
   let target = ''
   let source = ''
   let code = ''
   let targetFile = ''
   let sourceFile = ''
-  const name = fileName
+  const resolvedEmitFileName = resolveEmitFileName(emitDir, emitFileName)
 
   for (const file of files) {
     try {
@@ -97,13 +97,13 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, con
   code = `window.${globalName}=${returnedTarget};\n${versionInfo}`
   const formatCode = code
   const viteIgnoreAttr = context.framework === 'vite' ? ' vite-ignore' : ''
-  const scriptSrc = joinBasePath(base, fileName)
+  const scriptSrc = joinBasePath(base, resolvedEmitFileName)
   return {
     code,
     script: `  <script type="text/javascript"${viteIgnoreAttr} src="${scriptSrc}"></script>\n</head>`,
     emit: {
       type: 'asset',
-      fileName: name,
+      fileName: resolvedEmitFileName,
       source: formatCode,
     },
     watchFiles: files,
@@ -153,16 +153,29 @@ function getDefaultExportObject(ast: any, filePath: string) {
   return decl
 }
 
-function joinBasePath(base: string, fileName: string) {
+function joinBasePath(base: string, resourcePath: string) {
   const safeBase = base && base.endsWith('/') ? base : `${base || '/'}`.replace(/\/?$/, '/')
-  const safeFile = fileName.replace(/^\/+/, '')
+  const safeFile = resourcePath.replace(/^\/+/, '')
   return `${safeBase}${safeFile}`
 }
 
-async function resolveConfigFolder(root: string, dir: string): Promise<string> {
-  if (!dir)
+function resolveEmitFileName(emitDir: string, emitFileName: string) {
+  const normalizedFile = emitFileName.replace(/\\/g, '/').replace(/^\/+/, '')
+  if (!emitDir)
+    return normalizedFile
+  const normalizedDir = emitDir.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
+  if (!normalizedDir)
+    return normalizedFile
+  const prefix = `${normalizedDir}/`
+  if (normalizedFile === normalizedDir || normalizedFile.startsWith(prefix))
+    return normalizedFile
+  return path.posix.join(normalizedDir, normalizedFile)
+}
+
+async function resolveConfigFolder(root: string, configDir: string): Promise<string> {
+  if (!configDir)
     return ''
-  const candidate = path.isAbsolute(dir) ? dir : path.resolve(root, dir)
+  const candidate = path.isAbsolute(configDir) ? configDir : path.resolve(root, configDir)
   try {
     const stat = await fs.stat(candidate)
     if (stat.isDirectory())
@@ -171,7 +184,7 @@ async function resolveConfigFolder(root: string, dir: string): Promise<string> {
   catch {
     // fallback to recursive search
   }
-  return findFolder(root, dir)
+  return findFolder(root, configDir)
 }
 
 /**
