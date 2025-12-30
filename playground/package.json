@@ -1,7 +1,9 @@
 {
+  "name": "playground",
   "type": "module",
   "version": "0.0.1",
   "private": true,
+  "description": "vite + webpack + rollup 环境",
   "scripts": {
     "dev": "nodemon -w '../src/**/*.ts' -e .ts -x vite",
     "build:vite": "vite build",
