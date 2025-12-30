@@ -6,6 +6,7 @@ import path from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
 import * as recast from 'recast'
+import tsParser from 'recast/parsers/typescript'
 
 // 遍历 AST，找到 export default 对象节点，进行合并（仅替换同名 key）
 function mergeObjects(prodObj: any, devObj: any) {
@@ -34,37 +35,60 @@ function mergeObjects(prodObj: any, devObj: any) {
  */
 export async function generateScript(options: DeepRequired<ResolvedOptions>, context: UnifiedContext): Promise<GenerateScript> {
   const { dir, fileName, globalName, serve, build } = options.env
-  const folder = await findFolder(process.cwd(), dir)
-  const files = await fg('*.+(js|ts)', {
+  const folder = await resolveConfigFolder(process.cwd(), dir)
+  if (!folder)
+    throw new Error(`[unplugin-env] Config directory "${dir}" not found from ${process.cwd()}`)
+  const files = await fg('*.{js,ts}', {
     absolute: true,
     cwd: folder,
   })
+  if (!files.length)
+    throw new Error(`[unplugin-env] No config files found in ${folder}`)
   const { mode, base } = context
   // build or serve RegExp
   const testReg = mode === 'dev' ? serve : build
   let target = ''
   let source = ''
   let code = ''
+  let targetFile = ''
+  let sourceFile = ''
   const name = fileName
 
   for (const file of files) {
     try {
       const mod = await fs.readFile(file, 'utf-8')
-      if (testReg?.test(file))
+      if (testReg?.test(file)) {
         target = mod
-
-      else
+        targetFile = file
+      }
+      else {
         source = mod
+        sourceFile = file
+      }
     }
     catch (error) {
       // Handle errors here if needed
       console.error(`Error loading file ${file}:`, error)
     }
   }
-  const targetAst = recast.parse(target)
-  const sourceAst = recast.parse(source)
-  const targetExport = targetAst.program.body.find((n: any) => n.type === 'ExportDefaultDeclaration').declaration
-  const sourceExport = sourceAst.program.body.find((n: any) => n.type === 'ExportDefaultDeclaration').declaration
+  if (files.length === 1) {
+    if (!target) {
+      target = source
+      targetFile = sourceFile
+    }
+    if (!source) {
+      source = target
+      sourceFile = targetFile
+    }
+  }
+  if (!target || !targetFile)
+    throw new Error(`[unplugin-env] No file matched "${testReg}" in ${folder}`)
+  if (!source || !sourceFile)
+    throw new Error(`[unplugin-env] No base config file found in ${folder}`)
+  const targetAst = parseConfig(target, targetFile)
+  const sourceAst = parseConfig(source, sourceFile)
+  const targetExport = getDefaultExportObject(targetAst, targetFile)
+  const sourceExport = getDefaultExportObject(sourceAst, sourceFile)
   mergeObjects(sourceExport, targetExport)
   // 重新生成代码（自动保留注释）
   const mergedCode = recast.print(sourceExport).code
@@ -73,9 +97,10 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, con
   code = `window.${globalName}=${returnedTarget};\n${versionInfo}`
   const formatCode = code
   const viteIgnoreAttr = context.framework === 'vite' ? ' vite-ignore' : ''
+  const scriptSrc = joinBasePath(base, fileName)
   return {
     code,
-    script: `  <script type="text/javascript"${viteIgnoreAttr} src="${base}${fileName}"></script>\n</head>`,
+    script: `  <script type="text/javascript"${viteIgnoreAttr} src="${scriptSrc}"></script>\n</head>`,
     emit: {
       type: 'asset',
       fileName: name,
@@ -107,6 +132,46 @@ function wrapText(text: string, maxLen: number): string[] {
     lines.push(current)
 
   return lines
+}
+
+function parseConfig(code: string, filePath: string) {
+  const parser = filePath.endsWith('.ts') ? tsParser : undefined
+  return parser ? recast.parse(code, { parser }) : recast.parse(code)
+}
+
+function getDefaultExportObject(ast: any, filePath: string) {
+  const exportNode = ast?.program?.body?.find((node: any) => node.type === 'ExportDefaultDeclaration')
+  if (!exportNode?.declaration)
+    throw new Error(`[unplugin-env] ${filePath} must have a default export of an object`)
+  let decl = exportNode.declaration
+  if (decl.type === 'TSAsExpression' || decl.type === 'TSTypeAssertion')
+    decl = decl.expression
+  if (decl.type === 'CallExpression' && decl.arguments?.[0]?.type === 'ObjectExpression')
+    decl = decl.arguments[0]
+  if (decl.type !== 'ObjectExpression')
+    throw new Error(`[unplugin-env] ${filePath} default export must be an object literal`)
+  return decl
+}
+
+function joinBasePath(base: string, fileName: string) {
+  const safeBase = base && base.endsWith('/') ? base : `${base || '/'}`.replace(/\/?$/, '/')
+  const safeFile = fileName.replace(/^\/+/, '')
+  return `${safeBase}${safeFile}`
+}
+
+async function resolveConfigFolder(root: string, dir: string): Promise<string> {
+  if (!dir)
+    return ''
+  const candidate = path.isAbsolute(dir) ? dir : path.resolve(root, dir)
+  try {
+    const stat = await fs.stat(candidate)
+    if (stat.isDirectory())
+      return candidate
+  }
+  catch {
+    // fallback to recursive search
+  }
+  return findFolder(root, dir)
 }
 
 /**
@@ -206,22 +271,19 @@ console.log(
  */
 async function findFolder(directoryPath: string, dir: string): Promise<string> {
   const ignore = new Set(['dist', 'node_modules', 'playground', 'example', 'test', 'jest', 'tests', 'locales', 'public', '.git', '.github', '.vscode'])
-  const files = await fs.readdir(directoryPath)
-  const filePaths = files.filter(item => !ignore.has(item))
+  const entries = await fs.readdir(directoryPath, { withFileTypes: true })
+  const dirLower = dir.toLowerCase()
+  const filePaths = entries.filter(entry => !ignore.has(entry.name))
   let nestedFolder = ''
-  for (const file of filePaths) {
-    const fullFilePath = path.join(directoryPath, file)
-    const stat = await fs.stat(fullFilePath)
-    if (stat.isDirectory()) {
-      if (file.toLowerCase() === dir) {
-        return fullFilePath
-      }
-      else {
-        nestedFolder = await findFolder(fullFilePath, dir)
-        if (nestedFolder)
-          return nestedFolder
-      }
-    }
+  for (const entry of filePaths) {
+    if (!entry.isDirectory())
+      continue
+    const fullFilePath = path.join(directoryPath, entry.name)
+    if (entry.name.toLowerCase() === dirLower)
+      return fullFilePath
+    nestedFolder = await findFolder(fullFilePath, dir)
+    if (nestedFolder)
+      return nestedFolder
   }
   return ''
 }
