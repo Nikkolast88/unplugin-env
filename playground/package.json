@@ -6,6 +6,9 @@
   "description": "vite + webpack + rollup 环境",
   "scripts": {
     "dev": "nodemon -w '../src/**/*.ts' -e .ts -x vite",
+    "dev:vite": "vite",
+    "dev:webpack": "NODE_OPTIONS=--import=tsx webpack --config webpack.config.js --watch",
+    "dev:rollup": "NODE_OPTIONS=--import=tsx rollup -c rollup.config.js --watch",
     "build:vite": "vite build",
     "build:webpack": "NODE_OPTIONS=--import=tsx webpack --config webpack.config.js",
     "build:rollup": "NODE_OPTIONS=--import=tsx rollup -c rollup.config.js"

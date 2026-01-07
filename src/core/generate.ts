@@ -6,7 +6,7 @@ import path from 'node:path'
 import process from 'node:process'
 import fg from 'fast-glob'
 import * as recast from 'recast'
-import tsParser from 'recast/parsers/typescript'
+import tsParser from 'recast/parsers/typescript.js'
 
 // 遍历 AST，找到 export default 对象节点，进行合并（仅替换同名 key）
 function mergeObjects(prodObj: any, devObj: any) {
