@@ -110,6 +110,11 @@ export async function generateScript(options: DeepRequired<ResolvedOptions>, con
   }
 }
 
+/**
+ * 获取完整package.json
+ * @param cwd - 根目录
+ * @returns package.json内容
+ */
 async function getFullPackageJson(cwd = process.cwd()) {
   const pkgPath = path.resolve(cwd, 'package.json')
   const content = await fs.readFile(pkgPath, 'utf-8')
@@ -134,11 +139,23 @@ function wrapText(text: string, maxLen: number): string[] {
   return lines
 }
 
+/**
+ * 解析配置文件
+ * @param code - 配置文件内容
+ * @param filePath - 配置文件路径
+ * @returns AST对象
+ */
 function parseConfig(code: string, filePath: string) {
   const parser = filePath.endsWith('.ts') ? tsParser : undefined
   return parser ? recast.parse(code, { parser }) : recast.parse(code)
 }
 
+/**
+ * 获取默认导出对象
+ * @param ast - AST对象
+ * @param filePath - 文件路径
+ * @returns 默认导出对象
+ */
 function getDefaultExportObject(ast: any, filePath: string) {
   const exportNode = ast?.program?.body?.find((node: any) => node.type === 'ExportDefaultDeclaration')
   if (!exportNode?.declaration)
@@ -153,12 +170,23 @@ function getDefaultExportObject(ast: any, filePath: string) {
   return decl
 }
 
+/**
+ * 拼接基础路径
+ * @param base - 基础路径
+ * @param resourcePath - 资源路径
+ * @returns 拼接后的路径
+ */
 function joinBasePath(base: string, resourcePath: string) {
   const safeBase = base && base.endsWith('/') ? base : `${base || '/'}`.replace(/\/?$/, '/')
   const safeFile = resourcePath.replace(/^\/+/, '')
   return `${safeBase}${safeFile}`
 }
-
+/**
+ * 解析输出文件名
+ * @param emitDir - 输出目录
+ * @param emitFileName - 输出文件名
+ * @returns 输出文件名
+ */
 function resolveEmitFileName(emitDir: string, emitFileName: string) {
   const normalizedFile = emitFileName.replace(/\\/g, '/').replace(/^\/+/, '')
   if (!emitDir)
@@ -172,6 +200,12 @@ function resolveEmitFileName(emitDir: string, emitFileName: string) {
   return path.posix.join(normalizedDir, normalizedFile)
 }
 
+/**
+ * 解析配置文件夹
+ * @param root - 根目录
+ * @param configDir - 配置文件夹
+ * @returns 配置文件夹路径
+ */
 async function resolveConfigFolder(root: string, configDir: string): Promise<string> {
   if (!configDir)
     return ''

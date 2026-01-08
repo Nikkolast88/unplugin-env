@@ -4,5 +4,6 @@ import antfu from '@antfu/eslint-config'
 export default antfu({
   ignores: [
     'playground/playground/**',
+    'pnpm-workspace.yaml',
   ],
 })
